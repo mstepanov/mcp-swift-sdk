@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import JSONSchema
 
 @testable import MCP
 
@@ -10,9 +11,9 @@ struct ToolTests {
         let tool = Tool(
             name: "test_tool",
             description: "A test tool",
-            inputSchema: .object([
-                "properties": .object([
-                    "param1": .string("Test parameter")
+            inputSchema: .object(properties: [
+                "properties": .object(properties: [
+                    "param1": .string(description: "Test parameter")
                 ])
             ])
         )
@@ -101,9 +102,9 @@ struct ToolTests {
         let tool = Tool(
             name: "calculate",
             description: "Performs calculations",
-            inputSchema: .object([
-                "properties": .object([
-                    "expression": .string("Mathematical expression to evaluate")
+            inputSchema: .object(properties: [
+                "properties": .object(properties: [
+                    "expression": .string(description: "Mathematical expression to evaluate")
                 ])
             ]),
             annotations: annotations
@@ -130,7 +131,12 @@ struct ToolTests {
     func testToolWithEmptyAnnotations() throws {
         var tool = Tool(
             name: "test_tool",
-            description: "Test tool description"
+            description: "Test tool description",
+            inputSchema: .object(properties: [
+                "properties": .object(properties: [
+                    "param1": .string(description: "Test parameter")
+                ])
+            ])
         )
 
         do {
@@ -182,10 +188,10 @@ struct ToolTests {
         let tool = Tool(
             name: "test_tool",
             description: "Test tool description",
-            inputSchema: .object([
-                "properties": .object([
-                    "param1": .string("String parameter"),
-                    "param2": .int(42),
+            inputSchema: .object(properties: [
+                "properties": .object(properties: [
+                    "param1": .string(description: "String parameter"),
+                    "param2": .number(default: 42),
                 ])
             ])
         )
@@ -194,6 +200,7 @@ struct ToolTests {
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(tool)
+        decoder.userInfo[JSONSchema.propertyOrderUserInfoKey] = JSONSchema.extractSchemaPropertyOrder(from: data)
         let decoded = try decoder.decode(Tool.self, from: data)
 
         #expect(decoded.name == tool.name)
@@ -399,7 +406,15 @@ struct ToolTests {
             #expect(request.id == 1)
             #expect(request.params.cursor == nil)
 
-            let testTool = Tool(name: "test_tool", description: "Test tool for verification")
+            let testTool = Tool(
+                name: "test_tool",
+                description: "Test tool for verification",
+                inputSchema: .object(properties: [
+                    "properties": .object(properties: [
+                        "param1": .string(description: "Test parameter")
+                    ])
+                ])
+            )
             return ListTools.response(id: request.id, result: ListTools.Result(tools: [testTool]))
         }
 

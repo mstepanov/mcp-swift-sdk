@@ -50,8 +50,8 @@ struct RoundtripTests {
                     name: "add",
                     description: "Adds two numbers together",
                     inputSchema: [
-                        "a": ["type": "integer", "description": "The first number"],
-                        "a": ["type": "integer", "description": "The second number"],
+                        "a": .integer(description: "The first number"),
+                        "b": .integer(description: "The second number"),
                     ])
             ])
         }
