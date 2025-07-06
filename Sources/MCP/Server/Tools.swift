@@ -17,6 +17,9 @@ public struct Tool: Hashable, Codable, Sendable {
     /// The tool input schema
     public let inputSchema: JSONSchema
 
+    /// The tool output schema
+    public let outputSchema: JSONSchema?
+
     /// Annotations that provide display-facing and operational information for a Tool.
     ///
     /// - Note: All properties in `ToolAnnotations` are **hints**.
@@ -88,11 +91,13 @@ public struct Tool: Hashable, Codable, Sendable {
         name: String,
         description: String,
         inputSchema: JSONSchema,
+        outputSchema: JSONSchema? = nil,
         annotations: Annotations = nil
     ) {
         self.name = name
         self.description = description
         self.inputSchema = inputSchema
+        self.outputSchema = outputSchema
         self.annotations = annotations
     }
 
@@ -177,6 +182,7 @@ public struct Tool: Hashable, Codable, Sendable {
         case name
         case description
         case inputSchema
+        case outputSchema
         case annotations
     }
 
@@ -185,6 +191,7 @@ public struct Tool: Hashable, Codable, Sendable {
         name = try container.decode(String.self, forKey: .name)
         description = try container.decode(String.self, forKey: .description)
         inputSchema = try container.decode(JSONSchema.self, forKey: .inputSchema)
+        outputSchema = try container.decodeIfPresent(JSONSchema.self, forKey: .outputSchema)
         annotations =
             try container.decodeIfPresent(Tool.Annotations.self, forKey: .annotations) ?? .init()
     }
@@ -194,6 +201,7 @@ public struct Tool: Hashable, Codable, Sendable {
         try container.encode(name, forKey: .name)
         try container.encode(description, forKey: .description)
         try container.encode(inputSchema, forKey: .inputSchema)
+        try container.encodeIfPresent(outputSchema, forKey: .outputSchema)
         if !annotations.isEmpty {
             try container.encode(annotations, forKey: .annotations)
         }
@@ -247,10 +255,12 @@ public enum CallTool: Method {
 
     public struct Result: Hashable, Codable, Sendable {
         public let content: [Tool.Content]
+        public let structuredContent: JSONValue?
         public let isError: Bool?
 
-        public init(content: [Tool.Content], isError: Bool? = nil) {
+        public init(content: [Tool.Content], structuredContent: JSONValue? = nil, isError: Bool? = nil) {
             self.content = content
+            self.structuredContent = structuredContent
             self.isError = isError
         }
     }
